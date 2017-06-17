@@ -2,12 +2,8 @@ package khonsole;
 
 import kha.Framebuffer;
 import kha.Font;
-import kha.input.KeyCode;
 import khonsole.commands.Commands;
 import kha.System;
-
-using StringTools;
-using Lambda;
 
 class Khonsole{
 
@@ -18,14 +14,13 @@ class Khonsole{
 	public static var height:Float;
 	public static var opacity:Float;
 	public static var fontSize:Int;
-	//static var input:String;
-	//static var inputPos:Int;
 	static var input:Input;
 
 	public static var history(default, null):History;
 	public static var interpreter(default, null):Interpreter;
 	public static var commands(default, null):Commands;
 	public static var display(default, null):Display;
+	public static var _watch(default, null):Watch;
 
 	static var charWidth:Float;
 
@@ -67,6 +62,7 @@ class Khonsole{
 		display = new Display(0, Std.int(h - h * height), w, Std.int(h * height));
 		charWidth = font.width(fontSize, '_');
 		input = new Input(0, h - fontSize - 6, w, fontSize + 4, charWidth);
+		_watch = new Watch(0, 0, Std.int(w/2), Std.int(h/2));
 	}
 
 	/**
@@ -88,6 +84,10 @@ Hides Khonsole
 		display.resize(w,h);
 	}
 
+	public static function watch(name:String, value:Dynamic){
+		_watch.watch(name, value);
+	}
+
 /**
 Renders Khonsole
 @param g Graphics2 object
@@ -105,6 +105,7 @@ Renders Khonsole
 		g.opacity = opacity;
 		display.render(g);
 		input.render(g);
+		_watch.render(g);
 		g.opacity = 1;
 		g.color = 0xffffffff;
 	}
