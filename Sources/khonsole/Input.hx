@@ -31,6 +31,7 @@ class Input{
 
 	public function resize(w:Int, h:Int){
 		bounds.w = w-MARGIN;
+		bounds.y = h-Khonsole.fontSize-6;
 	}
 
 	public function render(g:kha.graphics2.Graphics){

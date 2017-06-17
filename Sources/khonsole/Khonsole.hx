@@ -53,7 +53,7 @@ class Khonsole{
 	@param height height of Khonsole (in %), 33 % by default
 	@param opacity opacity of Khonsole (in %) 50 % by default
 	**/
-	public static function init(font:Font, fontSize:Int = 16, height:Float = 0.33, opacity:Float = 0.5){
+	public static function init(font:Font, fontSize:Int = 20, height:Float = 0.33, opacity:Float = 0.5){
 		showing = true;
 		Khonsole.font = font;
 		Khonsole.height = height;
@@ -62,9 +62,11 @@ class Khonsole{
 		history = new History();
 		interpreter = new Interpreter();
 		commands = new Commands();
-		display = new Display();
+		var h = System.windowHeight();
+		var w = System.windowWidth();
+		display = new Display(0, Std.int(h - h * height), w, Std.int(h * height));
 		charWidth = font.width(fontSize, '_');
-		input = new Input(0, System.windowHeight() - fontSize - 6, System.windowWidth(), fontSize + 4, charWidth);
+		input = new Input(0, h - fontSize - 6, w, fontSize + 4, charWidth);
 	}
 
 	/**
@@ -82,6 +84,8 @@ Hides Khonsole
 
 	private static function resize(w:Int, h:Int){
 		prevSize = {width: w, height: h};
+		input.resize(w,h);
+		display.resize(w,h);
 	}
 
 /**
@@ -93,14 +97,12 @@ Renders Khonsole
 			return;
 		if (fb.height != prevSize.height || fb.width != fb.width)
 			resize(fb.width, fb.height);
+		//if (System.windowWidth() != prevSize.height || System.windowHeight() != prevSize.height)
+		//	resize(System.windowWidth(), System.windowHeight());
 		var g = fb.g2;
 		g.font = font;
 		g.fontSize = fontSize;
-		g.color = kha.Color.fromFloats(.7, .7, .7, 1);
 		g.opacity = opacity;
-		var w = prevSize.width;
-		var h = prevSize.height;
-		g.fillRect(0, h, w, -h*height); // Background of Display
 		display.render(g);
 		input.render(g);
 		g.opacity = 1;
