@@ -12,6 +12,7 @@ resolve(project);
 ```
 If Khonsole is available in your project, then you can just call ```Khonsole.init``` and the Khonsole will show.  
 The Khonsole class is your main entry point, if you don't need to modify it in any way you can just use Khonsole as is.  
+You need to call ```Khonsole.render``` to render Khonsole.
 ## Using Khonsole
 To harness the full potential of Khonsole you can create your own commands or register your variables to use in scripts.
 When inputing commands you can enforce execution of said command putting ! before the keyword, so no collisions

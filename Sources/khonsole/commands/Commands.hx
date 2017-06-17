@@ -147,7 +147,7 @@ class Commands{
 				else {
 					var path = Date.now().toString().replace(" ", "_").replace("/","_").replace(":","_") + "_" + params[0];
 					trace(path);
-					Display.info(path);
+					Khonsole.display.info(path);
 					if (!sys.FileSystem.exists("dumps"))
 						sys.FileSystem.createDirectory("dumps");
 					sys.io.File.saveContent('dumps/$path.json', Json.stringify(x));
@@ -185,6 +185,18 @@ class Commands{
 			return {
 				success: true,
 				output: 'Registered vars: $vars'
+			}
+		});
+		register("history", function(_){
+			var history = "";
+			var i = 0;
+			for (line in Khonsole.history.lines){
+				history += '[$i]: $line ';
+				i++;
+			}
+			return {
+				success: true,
+				output: history
 			}
 		});
 	}

@@ -45,11 +45,14 @@ class Khonsole{
 				inputPos--;
 			}
 			case KeyCode.Return:{
-				if (input.trim() == "")
+				input = input.trim();
+				if (input == "")
 					return;
-				display.info(input.trim());
-				display.displayStatus(interpreter.interpret(input.trim()));
-				history.addToHistory(input.trim());
+				
+				display.info(input);
+				if (input.charAt(0) != "#" || input.charAt(0) != "@")
+					history.addToHistory(input);
+				display.displayStatus(interpreter.interpret(input));
 				input = "";
 				inputPos = 0;
 			}
@@ -113,6 +116,7 @@ class Khonsole{
 		display = new Display();
 		kha.input.Keyboard.get().notify(down, null, pressed);
 		charWidth = font.width(fontSize, '_');
+
 	}
 
 	/**

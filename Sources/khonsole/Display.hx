@@ -54,6 +54,7 @@ class Display{
 	public function render(g:kha.graphics2.Graphics){
 		if (display == null)
 			return;
+		
 		var wh = kha.System.windowHeight();
 		var top = wh-(Khonsole.height * wh);
 		var a = 0;

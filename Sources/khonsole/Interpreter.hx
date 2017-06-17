@@ -4,6 +4,8 @@ import khonsole.commands.*;
 import hscript.Interp;
 import hscript.Parser;
 
+using StringTools;
+
 class Interpreter{
 
 	var interp:Interp;
@@ -33,6 +35,25 @@ class Interpreter{
 	}
 
 	public function interpret(input:String):Status{
+		if (input.charAt(0) == "#"){
+			var pos = Std.parseInt(input.substring(1));
+			if (pos == null)
+				return {
+					success: false,
+					output: input.substring(1) + "is not valid number"
+				}
+			return interpret(Khonsole.history.get(pos));
+		}
+		if (input.charAt(0) == "@"){
+			var pos = Std.parseInt(input.substring(1));
+			pos = Khonsole.history.i - pos;
+			if (pos == null)
+				return {
+					success: false,
+					output: input.substring(1) + "is not valid number"
+				}
+			return interpret(Khonsole.history.get(pos));
+		}
 		if (input.charAt(0) == "!"){
 			return runCommand(input);
 		}
@@ -58,8 +79,9 @@ class Interpreter{
 			}
 			catch(e:Dynamic){
 				var cmd = runCommand('!$input');
-				if (cmd.success)
+				if (cmd.success){
 					return cmd;
+				}
 				return {
 					success: false,
 					output: e.toString()
