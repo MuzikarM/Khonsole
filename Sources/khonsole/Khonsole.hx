@@ -1,9 +1,10 @@
 package khonsole;
 
-import kha.graphics2.Graphics;
+import kha.Framebuffer;
 import kha.Font;
 import kha.input.KeyCode;
 import khonsole.commands.Commands;
+import kha.System;
 
 using StringTools;
 using Lambda;
@@ -11,15 +12,15 @@ using Lambda;
 class Khonsole{
 
 	private static inline var MARGIN:Int = 5;
-	private static var BLACK_LIST = ["\n", "\r", "\t"];
 
 	public static var font:Font;
 	static var showing:Bool;
 	public static var height:Float;
 	public static var opacity:Float;
 	public static var fontSize:Int;
-	static var input:String;
-	static var inputPos:Int;
+	//static var input:String;
+	//static var inputPos:Int;
+	static var input:Input;
 
 	public static var history(default, null):History;
 	public static var interpreter(default, null):Interpreter;
@@ -28,73 +29,23 @@ class Khonsole{
 
 	static var charWidth:Float;
 
+	static var prevSize = {
+		width: 0,
+		height: 0
+	};
+
 	private function new(){
 		//NO-OP
 	}
 
+/**
+	Registers a new variable to use in console.
+	@param name Name of variable.
+	@param value Value of variable
+**/
 	public static function register(name:String, value:Dynamic){
 		interpreter.register(name, value);
 	}
-
-	static function down(x){
-		switch(x){
-			case KeyCode.Backspace:{
-				if (input.length == 0)
-					return;
-				input = input.substr(0, input.length-1);
-				inputPos--;
-			}
-			case KeyCode.Return:{
-				input = input.trim();
-				if (input == "")
-					return;
-				
-				display.info(input);
-				if (input.charAt(0) != "#" || input.charAt(0) != "@")
-					history.addToHistory(input);
-				display.displayStatus(interpreter.interpret(input));
-				input = "";
-				inputPos = 0;
-			}
-			case KeyCode.Left:{
-				if (inputPos > 0)
-					inputPos--;
-			}
-			case KeyCode.Right:{
-				if (inputPos < input.length)
-					inputPos++;
-			}
-			case KeyCode.Up:{
-				input = history.getPrevious();
-				inputPos = input.length;
-			}
-			case KeyCode.Down:{
-				input = history.getNext();
-				inputPos = input.length;
-			}
-			case KeyCode.Tab:{
-				input = commands.getSuggestion(input);
-				inputPos = input.length;
-			}
-		}
-	}
-
-	static function pressed(x:String){
-		if (BLACK_LIST.has(x))
-			return;
-		if (inputPos == input.length)
-			input += x;
-		else
-			input = insert(input, x, inputPos);
-		inputPos++;		
-	}
-
-	static function insert(to:String, what:String, index:Int):String{
-		var b = to.substr(0, index);
-		var f = to.substr(index);
-		return '$b$what$f';
-	}
-
 
 	/**
 	Creates a static instance of Khonsole
@@ -108,15 +59,12 @@ class Khonsole{
 		Khonsole.height = height;
 		Khonsole.opacity = opacity;
 		Khonsole.fontSize = fontSize;
-		input = "";
-		inputPos = 0;
 		history = new History();
 		interpreter = new Interpreter();
 		commands = new Commands();
 		display = new Display();
-		kha.input.Keyboard.get().notify(down, null, pressed);
 		charWidth = font.width(fontSize, '_');
-
+		input = new Input(0, System.windowHeight() - fontSize - 6, System.windowWidth(), fontSize + 4, charWidth);
 	}
 
 	/**
@@ -132,24 +80,29 @@ Hides Khonsole
 		showing = false;
 	}
 
-	public static function render(g:Graphics){
+	private static function resize(w:Int, h:Int){
+		prevSize = {width: w, height: h};
+	}
+
+/**
+Renders Khonsole
+@param g Graphics2 object
+**/
+	public static function render(fb:Framebuffer){
 		if (!showing)
 			return;
+		if (fb.height != prevSize.height || fb.width != fb.width)
+			resize(fb.width, fb.height);
+		var g = fb.g2;
 		g.font = font;
 		g.fontSize = fontSize;
 		g.color = kha.Color.fromFloats(.7, .7, .7, 1);
 		g.opacity = opacity;
-		var w = kha.System.windowWidth();
-		var h = kha.System.windowHeight();
-		g.fillRect(0, h, w, -h*height);
+		var w = prevSize.width;
+		var h = prevSize.height;
+		g.fillRect(0, h, w, -h*height); // Background of Display
 		display.render(g);
-		g.opacity = opacity+0.2;
-		g.fillRect(MARGIN, h, w-10, -(fontSize+(MARGIN*2)));
-		g.opacity = 1;
-		g.color = 0xff000000;
-		g.drawString(input, MARGIN, h-fontSize-(fontSize/2)+MARGIN/2);
-		g.opacity = Math.max(Math.abs(Math.sin(2*kha.System.time)), 0.2);
-		g.fillRect((inputPos * charWidth) + charWidth/2, h-MARGIN, charWidth, 2);
+		input.render(g);
 		g.opacity = 1;
 		g.color = 0xffffffff;
 	}
