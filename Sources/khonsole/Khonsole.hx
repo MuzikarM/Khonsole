@@ -21,6 +21,7 @@ class Khonsole{
 	public static var commands(default, null):Commands;
 	public static var display(default, null):Display;
 	public static var _watch(default, null):Watch;
+	public static var profiler(default, null):Profiler;
 
 	static var charWidth:Float;
 
@@ -63,6 +64,7 @@ class Khonsole{
 		charWidth = font.width(fontSize, '_');
 		input = new Input(0, h - fontSize - 6, w, fontSize + 4, charWidth);
 		_watch = new Watch(0, 0, Std.int(w/2), Std.int(h/2));
+		profiler = new Profiler(Std.int(w/2), 0, Std.int(w/2), Std.int(h/2));
 	}
 
 	/**
@@ -88,6 +90,14 @@ Hides Khonsole
 		_watch.watch(name, value);
 	}
 
+	public static function startProfile(name:String){
+		profiler.startProfile(name);
+	}
+
+	public static function endProfile(name:String){
+		profiler.endProfile(name);
+	}
+
 /**
 Renders Khonsole
 @param g Graphics2 object
@@ -106,6 +116,7 @@ Renders Khonsole
 		display.render(g);
 		input.render(g);
 		_watch.render(g);
+		profiler.render(g);
 		g.opacity = 1;
 		g.color = 0xffffffff;
 	}
