@@ -63,8 +63,7 @@ class Profiler{
 	}
 
 	function makeHeading(g:kha.graphics2.Graphics){
-		var eq = Std.int((bounds.w - g.font.width(Khonsole.fontSize, "PROFILES") / g.font.width(Khonsole.fontSize, "=")) / 2 / g.font.width(Khonsole.fontSize, "="));
-		trace(eq);
+		var eq = Std.int((bounds.w - g.font.width(Khonsole.fontSize, "PROFILES") / g.font.width(Khonsole.fontSize, "=")) / 2 / g.font.width(Khonsole.fontSize, "="))  - 1;
 		heading = "PROFILES";
 		for (i in 0...eq){
 			heading = '=$heading=';

@@ -7,6 +7,7 @@ class Watch{
 	public var watches(default, null):Array<WatchObj>;
 	var bounds:Bounds;
 	var taskId:Int;
+	var heading:String;
 
 	public function new(x:Int, y:Int, w:Int, h:Int, rate:Float = 1){
 		watches = new Array<WatchObj>();
@@ -16,6 +17,7 @@ class Watch{
 			w:w,
 			h:h
 		};
+		heading = "";
 		taskId = Scheduler.addTimeTask(refresh, rate, rate);
 	}
 
@@ -47,13 +49,24 @@ class Watch{
 		trace(watches);
 	}
 
+	function makeHeading(g:kha.graphics2.Graphics){
+		var eq = Std.int((bounds.w - g.font.width(Khonsole.fontSize, "WATCHES") / g.font.width(Khonsole.fontSize, "=")) / 2 / g.font.width(Khonsole.fontSize, "=")) - 1;
+		heading = "WATCHES";
+		for (i in 0...eq){
+			heading = '=$heading=';
+		}
+	}
+
 	public function render(g:kha.graphics2.Graphics){
 		g.color = 0xffcccccc;
 		g.opacity = Khonsole.opacity;
 		g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
 		g.opacity = 1;
 		g.color = 0xff000000;
-		var i = 0;
+		if (heading == "")
+			makeHeading(g);
+		g.drawString(heading, bounds.x, bounds.y);
+		var i = 1;
 		for (watch in watches){
 			g.drawString('${watch.name}: ${watch.value}', bounds.x, bounds.y + i*g.fontSize);
 		}
