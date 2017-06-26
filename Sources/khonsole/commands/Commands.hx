@@ -125,43 +125,7 @@ class Commands{
 			}
 		}, "!opacity <NEW_OPACITY (in % of 0.0 - 1.0)>");
 		#if (!js && !flash)
-		register("dump", function(params){
-			if (params.length < 1)
-				return {
-					success: false,
-					output: "Variable name must be specified"
-				}
-			var inter = Khonsole.interpreter.getInterp();
-			if (inter.variables.exists(params[0])){
-				var x = inter.variables.get(params[0]);
-				if (params.length == 2){
-					var path = params[1];
-					if (!sys.FileSystem.exists("dumps"))
-						sys.FileSystem.createDirectory("dumps");
-					sys.io.File.saveContent('dumps/$path.json', Json.stringify(x));
-					return {
-						success: true,
-						output: "File is saved as " + sys.FileSystem.fullPath('dumps/$path.json')
-					}
-				}
-				else {
-					var path = Date.now().toString().replace(" ", "_").replace("/","_").replace(":","_") + "_" + params[0];
-					trace(path);
-					Khonsole.display.info(path);
-					if (!sys.FileSystem.exists("dumps"))
-						sys.FileSystem.createDirectory("dumps");
-					sys.io.File.saveContent('dumps/$path.json', Json.stringify(x));
-					return {
-						success: true,
-						output: "File is saved as dumps/" + sys.FileSystem.fullPath('dumps/$path.json')
-					}
-				}
-			} else 
-				return {
-					success: false,
-					output: "Variable does not exist"
-				}
-		}, "!dump <VAR> [FILE_NAME]");
+		commands.set("!dump", new DumpCmd());
 		#end
 		register("commands", function (_){
 			var iter = commands.keys();

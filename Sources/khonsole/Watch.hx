@@ -4,7 +4,7 @@ import kha.Scheduler;
 
 class Watch{
 
-	var watches:Array<WatchObj>;
+	public var watches(default, null):Array<WatchObj>;
 	var bounds:Bounds;
 	var taskId:Int;
 
