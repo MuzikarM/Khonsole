@@ -1,13 +1,19 @@
 package khonsole;
 
+#if !macro
 import kha.Framebuffer;
 import kha.Font;
 import khonsole.commands.Commands;
 import kha.System;
 import kha.input.KeyCode;
-
+#end
+#if macro
+import haxe.macro.Expr;
+import haxe.macro.Expr.ExprDef;
+#end
 class Khonsole{
 
+	#if !macro
 	private static inline var MARGIN:Int = 5;
 
 	public static var font:Font;
@@ -71,7 +77,6 @@ class Khonsole{
 		
 	}
 
-
 	/**
 	Turns the Khonsole visible
 	**/	
@@ -89,10 +94,6 @@ Hides Khonsole
 		prevSize = {width: w, height: h};
 		input.resize(w,h);
 		display.resize(w,h);
-	}
-
-	public static function watch(name:String, value:Dynamic){
-		_watch.watch(name, value);
 	}
 
 	public static function startProfile(name:String){
@@ -125,6 +126,17 @@ Renders Khonsole
 		g.opacity = 1;
 		g.color = 0xffffffff;
 	}
+	#end
 
+	macro public static function watch(value:Expr){
+		switch(value.expr){
+			case EField(e, name):{
+				return macro Khonsole._watch.watch($v{name}, ${e});
+			}
+			case _:{
+				throw "Field must be supplied in watch";
+			}
+		}
+	}
 
 }
