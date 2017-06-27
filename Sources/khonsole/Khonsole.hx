@@ -129,9 +129,21 @@ Renders Khonsole
 	#end
 
 	macro public static function watch(value:Expr){
+		trace(value);
 		switch(value.expr){
 			case EField(e, name):{
 				return macro Khonsole._watch.watch($v{name}, ${e});
+			}
+			case EConst(e):{
+				switch (e){
+					case(CIdent(name)):{
+						return macro Khonsole._watch.watch($v{name}, this);
+					}
+					case _:{
+						trace(e);
+						throw "Field must be supplied in watch";
+					}
+				}
 			}
 			case _:{
 				throw "Field must be supplied in watch";
