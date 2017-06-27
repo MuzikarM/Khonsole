@@ -219,6 +219,31 @@ class Commands{
 				}
 			}
 		}, "!hide <watches|profiles>");
+		register("fields", function(params){
+			if (params.length < 1)
+				return {
+					success: false,
+					output: "Variable name must be provided"
+				};
+			var name = params[0];
+			var interp = Khonsole.interpreter.getInterp();
+			if (interp.variables.exists(name)){
+				var x = interp.variables.get(name);
+				var fields = "";
+				for (field in Reflect.fields(x)){
+					fields += '$field ';
+				}
+				return {
+					success: true,
+					output: fields
+				};
+			} else {
+				return {
+					success: false,
+					output: '$name does not exist'
+				}
+			}
+		}, "!fields <variable>");
 	}
 
 	public function register(id:String, action:Array<String>->Status, usage:String = "NOT SPECIFIED"){
