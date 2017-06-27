@@ -53,6 +53,10 @@ class Input{
 	}
 
 	function down(x){
+		if (x == Khonsole.actionKey){
+			Khonsole.showing = !Khonsole.showing;
+			return;
+		}
 		switch(x){
 			case KeyCode.Backspace:{
 				if (input.length == 0)

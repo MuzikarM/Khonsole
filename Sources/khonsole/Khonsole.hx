@@ -4,17 +4,19 @@ import kha.Framebuffer;
 import kha.Font;
 import khonsole.commands.Commands;
 import kha.System;
+import kha.input.KeyCode;
 
 class Khonsole{
 
 	private static inline var MARGIN:Int = 5;
 
 	public static var font:Font;
-	static var showing:Bool;
+	public static var showing:Bool;
 	public static var height:Float;
 	public static var opacity:Float;
 	public static var fontSize:Int;
 	static var input:Input;
+	public static var actionKey:Int;
 
 	public static var history(default, null):History;
 	public static var interpreter(default, null):Interpreter;
@@ -49,12 +51,13 @@ class Khonsole{
 	@param height height of Khonsole (in %), 33 % by default
 	@param opacity opacity of Khonsole (in %) 50 % by default
 	**/
-	public static function init(font:Font, fontSize:Int = 20, height:Float = 0.33, opacity:Float = 0.5){
+	public static function init(font:Font, key:Int = KeyCode.Home, fontSize:Int = 20, height:Float = 0.33, opacity:Float = 0.5){
 		showing = true;
 		Khonsole.font = font;
 		Khonsole.height = height;
 		Khonsole.opacity = opacity;
 		Khonsole.fontSize = fontSize;
+		actionKey = key;
 		history = new History();
 		interpreter = new Interpreter();
 		commands = new Commands();
@@ -65,6 +68,7 @@ class Khonsole{
 		input = new Input(0, h - fontSize - 6, w, fontSize + 4, charWidth);
 		_watch = new Watch(0, 0, Std.int(w/2), Std.int(h/2));
 		profiler = new Profiler(Std.int(w/2), 0, Std.int(w/2), Std.int(h/2));
+		
 	}
 
 	/**
