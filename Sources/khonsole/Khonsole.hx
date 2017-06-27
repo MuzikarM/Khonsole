@@ -71,6 +71,7 @@ class Khonsole{
 		
 	}
 
+
 	/**
 	Turns the Khonsole visible
 	**/	

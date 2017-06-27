@@ -7,6 +7,7 @@ class Profiler{
 	var bounds:Bounds;
 	var heading:String;
 	var columnWidth:Float;
+	public var showing:Bool;
 
 	public function new(x:Int, y:Int, w:Int, h:Int){
 		profiles = new Map<String, Profile>();
@@ -16,12 +17,14 @@ class Profiler{
 			w:w,
 			h:h
 		};
+		showing = false;
 		columnWidth = w / 4;
 		heading = "";
 	}
 
 	public function startProfile(name:String){
 		if (!profiles.exists(name)){
+			showing = true;
 			profiles.set(name, {
 				name: name,
 				calls: 0,
@@ -89,6 +92,8 @@ class Profiler{
 	}
 
 	public function render(g:kha.graphics2.Graphics){
+		if (!showing)
+			return;
 		g.color = 0xffcccccc;
 		g.opacity = Khonsole.opacity;
 		g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);

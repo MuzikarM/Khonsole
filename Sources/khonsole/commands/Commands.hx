@@ -163,6 +163,62 @@ class Commands{
 				output: history
 			}
 		});
+		register("show", function(params){
+			if (params.length < 1){
+				return {
+					success: false,
+					output: "You need to specify which window to show"
+				};
+			}
+			switch(params[0].toUpperCase()){
+				case"WATCHES":{
+					Khonsole._watch.showing = true;
+					return {
+						success: true
+					};
+				}
+				case"PROFILES":{
+					Khonsole.profiler.showing = true;
+					return {
+						success: true
+					};
+				}
+				case (_):{
+					return {
+						success: false,
+						output: 'Could not interpret ${params[0]}'
+					}
+				}
+			}
+		}, "!show <watches|profiles>");
+		register("hide", function(params){
+			if (params.length < 1){
+				return {
+					success: false,
+					output: "You need to specify which window to show"
+				};
+			}
+			switch(params[0].toUpperCase()){
+				case"WATCHES":{
+					Khonsole._watch.showing = false;
+					return {
+						success: true
+					};
+				}
+				case"PROFILES":{
+					Khonsole.profiler.showing = false;
+					return {
+						success: true
+					};
+				}
+				case (_):{
+					return {
+						success: false,
+						output: 'Could not interpret ${params[0]}'
+					}
+				}
+			}
+		}, "!hide <watches|profiles>");
 	}
 
 	public function register(id:String, action:Array<String>->Status, usage:String = "NOT SPECIFIED"){

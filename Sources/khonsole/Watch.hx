@@ -8,6 +8,7 @@ class Watch{
 	var bounds:Bounds;
 	var taskId:Int;
 	var heading:String;
+	public var showing:Bool;
 
 	public function new(x:Int, y:Int, w:Int, h:Int, rate:Float = 1){
 		watches = new Array<WatchObj>();
@@ -18,6 +19,7 @@ class Watch{
 			h:h
 		};
 		heading = "";
+		showing = false;
 		taskId = Scheduler.addTimeTask(refresh, rate, rate);
 	}
 
@@ -37,6 +39,7 @@ class Watch{
 	}
 
 	public function watch(name:String, value:Dynamic){
+		showing = true;
 		if (Reflect.hasField(value, name)){
 			watches.push({name: name, object: value, value: Reflect.field(value, name), type: WatchType.FIELD});
 		} else {
@@ -58,6 +61,8 @@ class Watch{
 	}
 
 	public function render(g:kha.graphics2.Graphics){
+		if (!showing)
+			return;
 		g.color = 0xffcccccc;
 		g.opacity = Khonsole.opacity;
 		g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
