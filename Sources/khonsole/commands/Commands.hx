@@ -173,12 +173,14 @@ class Commands{
 			switch(params[0].toUpperCase()){
 				case"WATCHES":{
 					Khonsole._watch.showing = true;
+					Khonsole.refresh();
 					return {
 						success: true
 					};
 				}
 				case"PROFILES":{
 					Khonsole.profiler.showing = true;
+					Khonsole.refresh();
 					return {
 						success: true
 					};
@@ -201,12 +203,14 @@ class Commands{
 			switch(params[0].toUpperCase()){
 				case"WATCHES":{
 					Khonsole._watch.showing = false;
+					Khonsole.refresh();
 					return {
 						success: true
 					};
 				}
 				case"PROFILES":{
 					Khonsole.profiler.showing = false;
+					Khonsole.refresh();
 					return {
 						success: true
 					};

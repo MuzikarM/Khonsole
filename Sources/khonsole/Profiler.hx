@@ -22,6 +22,20 @@ class Profiler{
 		heading = "";
 	}
 
+	public function resize(w:Int, h:Int){
+		if (Khonsole._watch.showing){
+			bounds.w = Std.int(w / 2);
+			bounds.x = Std.int(w / 2);
+		}
+		else {
+			bounds.w = w;
+			bounds.x = 0;
+		}
+		columnWidth = bounds.w / 4;
+		heading = "";
+		bounds.h = Std.int(h / 2);
+	}
+
 	public function startProfile(name:String){
 		if (!profiles.exists(name)){
 			showing = true;

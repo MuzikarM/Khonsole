@@ -94,6 +94,12 @@ Hides Khonsole
 		prevSize = {width: w, height: h};
 		input.resize(w,h);
 		display.resize(w,h);
+		_watch.resize(w, h);
+		profiler.resize(w, h);
+	}
+
+	public static function refresh(){
+		resize(prevSize.width, prevSize.height);
 	}
 
 	public static function startProfile(name:String){

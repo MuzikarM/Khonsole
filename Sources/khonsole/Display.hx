@@ -105,8 +105,7 @@ class Display{
 
 }
 
-
 typedef Line = {
-	var color: Int;
+	var color:Int;
 	var text:String;
 }
