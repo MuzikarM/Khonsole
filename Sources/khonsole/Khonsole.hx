@@ -1,100 +1,55 @@
 package khonsole;
 
-import kha.graphics2.Graphics;
+#if !macro
+import kha.Framebuffer;
 import kha.Font;
-import kha.input.KeyCode;
 import khonsole.commands.Commands;
-
-using StringTools;
-using Lambda;
-
+import kha.System;
+import kha.input.KeyCode;
+#end
+#if macro
+import haxe.macro.Expr;
+import haxe.macro.Expr.ExprDef;
+#end
 class Khonsole{
 
+	#if !macro
 	private static inline var MARGIN:Int = 5;
-	private static var BLACK_LIST = ["\n", "\r", "\t"];
 
 	public static var font:Font;
-	static var showing:Bool;
+	public static var showing:Bool;
 	public static var height:Float;
 	public static var opacity:Float;
 	public static var fontSize:Int;
-	static var input:String;
-	static var inputPos:Int;
+	static var input:Input;
+	public static var actionKey:Int;
 
 	public static var history(default, null):History;
 	public static var interpreter(default, null):Interpreter;
 	public static var commands(default, null):Commands;
 	public static var display(default, null):Display;
+	public static var _watch(default, null):Watch;
+	public static var profiler(default, null):Profiler;
 
 	static var charWidth:Float;
+
+	static var prevSize = {
+		width: 0,
+		height: 0
+	};
 
 	private function new(){
 		//NO-OP
 	}
 
+/**
+	Registers a new variable to use in console.
+	@param name Name of variable.
+	@param value Value of variable
+**/
 	public static function register(name:String, value:Dynamic){
 		interpreter.register(name, value);
 	}
-
-	static function down(x){
-		switch(x){
-			case KeyCode.Backspace:{
-				if (input.length == 0)
-					return;
-				input = input.substr(0, input.length-1);
-				inputPos--;
-			}
-			case KeyCode.Return:{
-				input = input.trim();
-				if (input == "")
-					return;
-				
-				display.info(input);
-				if (input.charAt(0) != "#" || input.charAt(0) != "@")
-					history.addToHistory(input);
-				display.displayStatus(interpreter.interpret(input));
-				input = "";
-				inputPos = 0;
-			}
-			case KeyCode.Left:{
-				if (inputPos > 0)
-					inputPos--;
-			}
-			case KeyCode.Right:{
-				if (inputPos < input.length)
-					inputPos++;
-			}
-			case KeyCode.Up:{
-				input = history.getPrevious();
-				inputPos = input.length;
-			}
-			case KeyCode.Down:{
-				input = history.getNext();
-				inputPos = input.length;
-			}
-			case KeyCode.Tab:{
-				input = commands.getSuggestion(input);
-				inputPos = input.length;
-			}
-		}
-	}
-
-	static function pressed(x:String){
-		if (BLACK_LIST.has(x))
-			return;
-		if (inputPos == input.length)
-			input += x;
-		else
-			input = insert(input, x, inputPos);
-		inputPos++;		
-	}
-
-	static function insert(to:String, what:String, index:Int):String{
-		var b = to.substr(0, index);
-		var f = to.substr(index);
-		return '$b$what$f';
-	}
-
 
 	/**
 	Creates a static instance of Khonsole
@@ -102,21 +57,24 @@ class Khonsole{
 	@param height height of Khonsole (in %), 33 % by default
 	@param opacity opacity of Khonsole (in %) 50 % by default
 	**/
-	public static function init(font:Font, fontSize:Int = 16, height:Float = 0.33, opacity:Float = 0.5){
+	public static function init(font:Font, key:Int = KeyCode.Home, fontSize:Int = 20, height:Float = 0.33, opacity:Float = 0.5){
 		showing = true;
 		Khonsole.font = font;
 		Khonsole.height = height;
 		Khonsole.opacity = opacity;
 		Khonsole.fontSize = fontSize;
-		input = "";
-		inputPos = 0;
+		actionKey = key;
 		history = new History();
 		interpreter = new Interpreter();
 		commands = new Commands();
-		display = new Display();
-		kha.input.Keyboard.get().notify(down, null, pressed);
+		var h = System.windowHeight();
+		var w = System.windowWidth();
+		display = new Display(0, Std.int(h - h * height), w, Std.int(h * height));
 		charWidth = font.width(fontSize, '_');
-
+		input = new Input(0, h - fontSize - 6, w, fontSize + 4, charWidth);
+		_watch = new Watch(0, 0, Std.int(w/2), Std.int(h/2));
+		profiler = new Profiler(Std.int(w/2), 0, Std.int(w/2), Std.int(h/2));
+		
 	}
 
 	/**
@@ -132,27 +90,71 @@ Hides Khonsole
 		showing = false;
 	}
 
-	public static function render(g:Graphics){
+	private static function resize(w:Int, h:Int){
+		prevSize = {width: w, height: h};
+		input.resize(w,h);
+		display.resize(w,h);
+		_watch.resize(w, h);
+		profiler.resize(w, h);
+	}
+
+	public static function refresh(){
+		resize(prevSize.width, prevSize.height);
+	}
+
+	public static function startProfile(name:String){
+		profiler.startProfile(name);
+	}
+
+	public static function endProfile(name:String){
+		profiler.endProfile(name);
+	}
+
+/**
+Renders Khonsole
+@param g Graphics2 object
+**/
+	public static function render(fb:Framebuffer){
 		if (!showing)
 			return;
+		if (fb.height != prevSize.height || fb.width != fb.width)
+			resize(fb.width, fb.height);
+		//if (System.windowWidth() != prevSize.height || System.windowHeight() != prevSize.height)
+		//	resize(System.windowWidth(), System.windowHeight());
+		var g = fb.g2;
 		g.font = font;
 		g.fontSize = fontSize;
-		g.color = kha.Color.fromFloats(.7, .7, .7, 1);
 		g.opacity = opacity;
-		var w = kha.System.windowWidth();
-		var h = kha.System.windowHeight();
-		g.fillRect(0, h, w, -h*height);
 		display.render(g);
-		g.opacity = opacity+0.2;
-		g.fillRect(MARGIN, h, w-10, -(fontSize+(MARGIN*2)));
-		g.opacity = 1;
-		g.color = 0xff000000;
-		g.drawString(input, MARGIN, h-fontSize-(fontSize/2)+MARGIN/2);
-		g.opacity = Math.max(Math.abs(Math.sin(2*kha.System.time)), 0.2);
-		g.fillRect((inputPos * charWidth) + charWidth/2, h-MARGIN, charWidth, 2);
+		input.render(g);
+		_watch.render(g);
+		profiler.render(g);
 		g.opacity = 1;
 		g.color = 0xffffffff;
 	}
+	#end
 
+	macro public static function watch(value:Expr){
+		trace(value);
+		switch(value.expr){
+			case EField(e, name):{
+				return macro Khonsole._watch.watch($v{name}, ${e});
+			}
+			case EConst(e):{
+				switch (e){
+					case(CIdent(name)):{
+						return macro Khonsole._watch.watch($v{name}, this);
+					}
+					case _:{
+						trace(e);
+						throw "Field must be supplied in watch";
+					}
+				}
+			}
+			case _:{
+				throw "Field must be supplied in watch";
+			}
+		}
+	}
 
 }

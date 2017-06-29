@@ -125,43 +125,7 @@ class Commands{
 			}
 		}, "!opacity <NEW_OPACITY (in % of 0.0 - 1.0)>");
 		#if (!js && !flash)
-		register("dump", function(params){
-			if (params.length < 1)
-				return {
-					success: false,
-					output: "Variable name must be specified"
-				}
-			var inter = Khonsole.interpreter.getInterp();
-			if (inter.variables.exists(params[0])){
-				var x = inter.variables.get(params[0]);
-				if (params.length == 2){
-					var path = params[1];
-					if (!sys.FileSystem.exists("dumps"))
-						sys.FileSystem.createDirectory("dumps");
-					sys.io.File.saveContent('dumps/$path.json', Json.stringify(x));
-					return {
-						success: true,
-						output: "File is saved as " + sys.FileSystem.fullPath('dumps/$path.json')
-					}
-				}
-				else {
-					var path = Date.now().toString().replace(" ", "_").replace("/","_").replace(":","_") + "_" + params[0];
-					trace(path);
-					Khonsole.display.info(path);
-					if (!sys.FileSystem.exists("dumps"))
-						sys.FileSystem.createDirectory("dumps");
-					sys.io.File.saveContent('dumps/$path.json', Json.stringify(x));
-					return {
-						success: true,
-						output: "File is saved as dumps/" + sys.FileSystem.fullPath('dumps/$path.json')
-					}
-				}
-			} else 
-				return {
-					success: false,
-					output: "Variable does not exist"
-				}
-		}, "!dump <VAR> [FILE_NAME]");
+		commands.set("!dump", new DumpCmd());
 		#end
 		register("commands", function (_){
 			var iter = commands.keys();
@@ -199,6 +163,91 @@ class Commands{
 				output: history
 			}
 		});
+		register("show", function(params){
+			if (params.length < 1){
+				return {
+					success: false,
+					output: "You need to specify which window to show"
+				};
+			}
+			switch(params[0].toUpperCase()){
+				case"WATCHES":{
+					Khonsole._watch.showing = true;
+					Khonsole.refresh();
+					return {
+						success: true
+					};
+				}
+				case"PROFILES":{
+					Khonsole.profiler.showing = true;
+					Khonsole.refresh();
+					return {
+						success: true
+					};
+				}
+				case (_):{
+					return {
+						success: false,
+						output: 'Could not interpret ${params[0]}'
+					}
+				}
+			}
+		}, "!show <watches|profiles>");
+		register("hide", function(params){
+			if (params.length < 1){
+				return {
+					success: false,
+					output: "You need to specify which window to show"
+				};
+			}
+			switch(params[0].toUpperCase()){
+				case"WATCHES":{
+					Khonsole._watch.showing = false;
+					Khonsole.refresh();
+					return {
+						success: true
+					};
+				}
+				case"PROFILES":{
+					Khonsole.profiler.showing = false;
+					Khonsole.refresh();
+					return {
+						success: true
+					};
+				}
+				case (_):{
+					return {
+						success: false,
+						output: 'Could not interpret ${params[0]}'
+					}
+				}
+			}
+		}, "!hide <watches|profiles>");
+		register("fields", function(params){
+			if (params.length < 1)
+				return {
+					success: false,
+					output: "Variable name must be provided"
+				};
+			var name = params[0];
+			var interp = Khonsole.interpreter.getInterp();
+			if (interp.variables.exists(name)){
+				var x = interp.variables.get(name);
+				var fields = "";
+				for (field in Reflect.fields(x)){
+					fields += '$field ';
+				}
+				return {
+					success: true,
+					output: fields
+				};
+			} else {
+				return {
+					success: false,
+					output: '$name does not exist'
+				}
+			}
+		}, "!fields <variable>");
 	}
 
 	public function register(id:String, action:Array<String>->Status, usage:String = "NOT SPECIFIED"){
