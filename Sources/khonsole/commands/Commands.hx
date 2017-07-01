@@ -234,16 +234,27 @@ class Commands{
 	}
 
 	public function getSuggestion(x:String):String{
-		var iter = commands.keys();
-		while (iter.hasNext()){
-			var key = iter.next();
-			trace(key);
-			if (key.startsWith(x)){
-				return key;
-			}
+		x.trim();
+		var cmd = x.split(" ");
+		if (cmd.length > 1)
+			x = cmd[0];
+		if (commands.exists(x)){
+			var cmd = commands.get(x);
+			Khonsole.display.info(cmd.getUsage());
+			return x;
 		}
-		return x;
-		
+		else {
+			if (x.charAt(0) != "!")
+				x = '!$x';
+			var iter = commands.keys();
+			while (iter.hasNext()){
+				var key = iter.next();
+				if (key.startsWith(x)){
+					return key;
+				}
+			}
+			return x;
+		}
 	}
 
 }
