@@ -2,19 +2,14 @@ package khonsole;
 
 import khonsole.commands.Status;
 
-class Display{
+class Display extends Window{
 
 	var display:Array<Line>;
-	var bounds:Bounds;
 
 	public function new(x:Int, y:Int, w:Int, h:Int){
 		display = new Array<Line>();
-		bounds = {
-			x:x,
-			y:y,
-			w:w,
-			h:h
-		};
+		initBounds(x,y,w,h);
+		this.onResize = _resize;
 	}
 
 	public function print(text:String, color:Int){
@@ -50,7 +45,7 @@ class Display{
 		}
 	}
 
-	public function resize(w:Int, h:Int){
+	public function _resize(w:Int, h:Int){
 		bounds.w = w;
 		bounds.y = Std.int(h - h * Khonsole.height);
 	}

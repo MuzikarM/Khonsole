@@ -30,6 +30,7 @@ class Khonsole{
 	public static var display(default, null):Display;
 	public static var _watch(default, null):Watch;
 	public static var profiler(default, null):Profiler;
+	static var windows:Array<Window>;
 
 	static var inputMan:InputManager;
 	static var charWidth:Float;
@@ -75,7 +76,8 @@ class Khonsole{
 		input = new Input(0, h - fontSize - 6, w, fontSize + 4, charWidth);
 		_watch = new Watch(0, 0, Std.int(w/2), Std.int(h/2));
 		profiler = new Profiler(Std.int(w/2), 0, Std.int(w/2), Std.int(h/2));
-		inputMan = new InputManager([_watch, profiler, input], input);	
+		windows = [_watch, profiler, input, display];
+		inputMan = new InputManager(windows, input);	
 	}
 
 	/**
@@ -93,10 +95,9 @@ Hides Khonsole
 
 	private static function resize(w:Int, h:Int){
 		prevSize = {width: w, height: h};
-		input.resize(w,h);
-		display.resize(w,h);
-		_watch.resize(w, h);
-		profiler.resize(w, h);
+		for (window in windows){
+			window.resize(w, h);
+		}
 	}
 
 	public static function refresh(){
