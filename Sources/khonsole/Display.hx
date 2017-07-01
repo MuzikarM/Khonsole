@@ -24,7 +24,6 @@ class Display{
 			var words = text.split(" ");
 			var w:Float = fwidth('[__]: ');
 			var line = "";
-			trace(words);
 			for (word in words){
 				var tempW = fwidth('$word ');
 				if (tempW + w >= bounds.w){

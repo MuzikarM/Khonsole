@@ -1,28 +1,22 @@
 package khonsole;
 
 
-class Profiler{
+class Profiler extends Window{
 
 	public var profiles(default, null):Map<String, Profile>;
-	var bounds:Bounds;
-	var heading:String;
 	var columnWidth:Float;
 	public var showing:Bool;
 
 	public function new(x:Int, y:Int, w:Int, h:Int){
 		profiles = new Map<String, Profile>();
-		bounds = {
-			x:x,
-			y:y,
-			w:w,
-			h:h
-		};
+		heading = "PROFILES";
+		initBounds(x,y,w,h);
 		showing = false;
 		columnWidth = w / 4;
-		heading = "";
+		this.onResize = _resize;
 	}
 
-	public function resize(w:Int, h:Int){
+	public function _resize(w:Int, h:Int){
 		if (Khonsole._watch.showing){
 			bounds.w = Std.int(w / 2);
 			bounds.x = Std.int(w / 2);
@@ -32,7 +26,6 @@ class Profiler{
 			bounds.x = 0;
 		}
 		columnWidth = bounds.w / 4;
-		heading = "";
 		bounds.h = Std.int(h / 2);
 	}
 
@@ -108,16 +101,10 @@ class Profiler{
 	public function render(g:kha.graphics2.Graphics){
 		if (!showing)
 			return;
-		g.color = 0xffcccccc;
-		g.opacity = Khonsole.opacity;
-		g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+		prepareWindow(g);
 		g.opacity = 1;
-		g.color = 0xff000000;
-		if (heading == ""){
-			makeHeading(g);
-		}
-		g.drawString(heading, bounds.x, bounds.y);
-		drawColumns(g, 1, ["name", "last time", "calls", "avg"]);
+		g.color = 0xffffffff;
+		drawColumns(g, 1, ["Name", "Last time", "Calls", "Avg."]);
 		var i = 2;
 		for (profile in profiles){
 			drawProfile(g, i, profile);

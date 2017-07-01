@@ -4,25 +4,19 @@ import kha.Scheduler;
 
 using StringTools;
 
-class Watch{
+class Watch extends Window{
 
 	public var watches(default, null):Array<WatchObj>;
-	var bounds:Bounds;
 	var taskId:Int;
-	var heading:String;
 	public var showing:Bool;
 
 	public function new(x:Int, y:Int, w:Int, h:Int, rate:Float = 1){
 		watches = new Array<WatchObj>();
-		bounds = {
-			x:x,
-			y:y,
-			w:w,
-			h:h
-		};
-		heading = "";
+		heading = "WATCHES";		
+		initBounds(x,y,w,h);
 		showing = false;
 		taskId = Scheduler.addTimeTask(refresh, rate, rate);
+		this.onResize = _resize;
 	}
 
 	public function setRefreshRate(rate:Float){
@@ -80,7 +74,7 @@ class Watch{
 				throw "Watched object doesn't exist";
 		}
 	}
-
+/*
 	function makeHeading(g:kha.graphics2.Graphics){
 		var eq = Std.int((bounds.w - g.font.width(Khonsole.fontSize, "WATCHES") / g.font.width(Khonsole.fontSize, "=")) / 2 / g.font.width(Khonsole.fontSize, "=")) - 1;
 		heading = "WATCHES";
@@ -88,7 +82,7 @@ class Watch{
 			heading = '=$heading=';
 		}
 	}
-
+*/
 	function drawMultiline(g:kha.graphics2.Graphics, val:Array<String>, i:Int){
 		for (line in val){
 			g.drawString(line, bounds.x, bounds.y + i * g.fontSize);
@@ -96,28 +90,26 @@ class Watch{
 		}
 	}
 
-	public function resize(w:Int, h:Int){
+	public function _resize(w:Int, h:Int){
 		if (Khonsole.profiler.showing){
 			bounds.w = Std.int(w / 2);
 		} else {
 			bounds.w = w;
 		}
 		bounds.h = Std.int(h / 2);
-		heading = "";
+		//heading = "";
 		refresh();
 	}
 
 	public function render(g:kha.graphics2.Graphics){
 		if (!showing)
 			return;
-		g.color = 0xffcccccc;
-		g.opacity = Khonsole.opacity;
-		g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
+		prepareWindow(g);
 		g.opacity = 1;
 		g.color = 0xff000000;
-		if (heading == "")
+		/*if (heading == "")
 			makeHeading(g);
-		g.drawString(heading, bounds.x, bounds.y);
+		g.drawString(heading, bounds.x, bounds.y);*/
 		var i = 1;
 		for (watch in watches){
 			if (Std.is(watch.value, String)){

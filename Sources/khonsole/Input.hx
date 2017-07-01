@@ -5,31 +5,26 @@ import kha.input.KeyCode;
 using StringTools;
 using Lambda;
 
-class Input{
+class Input extends Window{
 
 	private static var BLACK_LIST = ["\n", "\r", "\t"];
 
-	var bounds:Bounds;
 	static inline var MARGIN = 5;
 	var input:String;
 	public var pos:Int;
 	var charWidth:Float;
 
 	public function new(x:Int, y:Int, w:Int, h:Int, charWidth:Float){
-		bounds = {
-			x:x+MARGIN,
-			y:y,
-			w:w-MARGIN,
-			h:h
-		};
+		initBounds(x + MARGIN, y, w - MARGIN, h);
 		this.charWidth = charWidth;
 		input = "";
 		pos = 0;
-		trace(bounds);
-		kha.input.Keyboard.get().notify(down, null, pressed);
+		this.onResize = _resize;
+		this.onKeyInput = down;
+		this.onStrInput = pressed;
 	}
 
-	public function resize(w:Int, h:Int){
+	public function _resize(w:Int, h:Int){
 		bounds.w = w-MARGIN;
 		bounds.y = h-Khonsole.fontSize-6;
 	}
@@ -51,6 +46,7 @@ class Input{
 	public function getInput():String{
 		return input;
 	}
+
 
 	function down(x){
 		if (x == Khonsole.actionKey){

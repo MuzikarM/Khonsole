@@ -31,6 +31,7 @@ class Khonsole{
 	public static var _watch(default, null):Watch;
 	public static var profiler(default, null):Profiler;
 
+	static var inputMan:InputManager;
 	static var charWidth:Float;
 
 	static var prevSize = {
@@ -74,7 +75,7 @@ class Khonsole{
 		input = new Input(0, h - fontSize - 6, w, fontSize + 4, charWidth);
 		_watch = new Watch(0, 0, Std.int(w/2), Std.int(h/2));
 		profiler = new Profiler(Std.int(w/2), 0, Std.int(w/2), Std.int(h/2));
-		
+		inputMan = new InputManager([_watch, profiler, input], input);	
 	}
 
 	/**
