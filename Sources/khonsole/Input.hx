@@ -87,7 +87,7 @@ class Input extends Window{
 				input = Khonsole.history.getNext();
 				pos = input.length;
 			}
-			case KeyCode.Tab:{
+			case KeyCode.F1:{
 				input = Khonsole.commands.getSuggestion(input);
 				pos = input.length;
 			}
