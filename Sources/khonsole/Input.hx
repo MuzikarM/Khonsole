@@ -29,8 +29,10 @@ class Input extends Window{
 		bounds.y = h-Khonsole.fontSize-6;
 	}
 
+
 	public function render(g:kha.graphics2.Graphics){
 		g.opacity += 0.2;
+		g.color = 0xffffffff;
 		g.fillRect(bounds.x-MARGIN, bounds.y, bounds.w+MARGIN, bounds.h);
 		g.opacity = 1;
 		g.color = 0xff000000;
@@ -39,20 +41,12 @@ class Input extends Window{
 		g.fillRect(pos * charWidth + charWidth/2, bounds.y + g.fontSize, charWidth, 2);
 	}
 
-	public function setInput(input:String):Void{
-
-	}
-
 	public function getInput():String{
 		return input;
 	}
 
 
 	function down(x){
-		if (x == Khonsole.actionKey){
-			Khonsole.showing = !Khonsole.showing;
-			return;
-		}
 		switch(x){
 			case KeyCode.Backspace:{
 				if (input.length == 0)
@@ -65,8 +59,9 @@ class Input extends Window{
 				if (input == "")
 					return;
 				Khonsole.display.info(input);
-				if (input.charAt(0) != "#" || input.charAt(0) != "@")
+				if (input.charAt(0) != "#" && input.charAt(0) != "@"){
 					Khonsole.history.addToHistory(input);
+				}
 				Khonsole.display.displayStatus(Khonsole.interpreter.interpret(input));
 				input = "";
 				pos = 0;
