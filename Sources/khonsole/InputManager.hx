@@ -20,11 +20,15 @@ class InputManager{
 	}
 
 	function mouseUp(id, x, y){
+		if (!Khonsole.showing)
+			return;
 		if (active != null)
 			active.click(id, x, y);
 	}
 
 	function mouseMove(x,y,dx,dy){
+		if (!Khonsole.showing)
+			return;
 		if (active != null){
 			if (!active.pointInBounds(x,y)){
 				for (window in windows){
@@ -48,11 +52,18 @@ class InputManager{
 	}
 
 	function mouseScroll(y){
+		if (!Khonsole.showing)
+			return;
 		if (active != null)
 			active.scroll(y);
 	}
 
 	function keyDown(i){
+		if (i == Khonsole.actionKey)
+			Khonsole.showing = !Khonsole.showing;
+		if (!Khonsole.showing){
+			return;
+		}
 		if (active != null){
 			if (active.acceptsKeyInput())
 				active.keyInput(i);
@@ -68,6 +79,8 @@ class InputManager{
 	}
 
 	function keyPressed(s){
+		if (!Khonsole.showing)
+			return;
 		if (active != null){
 			if (active.acceptsKeyInput())
 				active.strInput(s);
