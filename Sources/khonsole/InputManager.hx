@@ -36,15 +36,22 @@ class InputManager{
 						active.lostFocus();
 						active = window;
 						window.setFocus();
+						active.mouseMove(x,y,dx,dy);
 						return;
 					}
 				}
+				active.lostFocus();
+				active = null;
+			}
+			else {
+				active.mouseMove(x,y,dx,dy);
 			}
 		} else {
 			for (window in windows){
 				if (window.pointInBounds(x,y)){
 					active = window;
 					window.setFocus();
+					active.mouseMove(x,y,dx,dy);
 					return;
 				}
 			}

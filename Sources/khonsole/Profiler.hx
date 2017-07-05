@@ -5,7 +5,6 @@ class Profiler extends Window{
 
 	public var profiles(default, null):Map<String, Profile>;
 	var columnWidth:Float;
-	public var showing:Bool;
 
 	public function new(x:Int, y:Int, w:Int, h:Int){
 		profiles = new Map<String, Profile>();
@@ -14,6 +13,7 @@ class Profiler extends Window{
 		showing = false;
 		columnWidth = w / 4;
 		this.onResize = _resize;
+		addCloseButton();
 	}
 
 	public function _resize(w:Int, h:Int){

@@ -10,6 +10,7 @@ import kha.input.KeyCode;
 #if macro
 import haxe.macro.Expr;
 import haxe.macro.Expr.ExprDef;
+using haxe.macro.ExprTools;
 #end
 class Khonsole{
 
@@ -137,7 +138,6 @@ Renders Khonsole
 	#end
 
 	macro public static function watch(value:Expr){
-		trace(value);
 		switch(value.expr){
 			case EField(e, name):{
 				return macro Khonsole._watch.watch($v{name}, ${e});
@@ -149,6 +149,38 @@ Renders Khonsole
 					}
 					case _:{
 						trace(e);
+						throw "Field must be supplied in watch";
+					}
+				}
+			}
+			case EArray(o, i):{
+				switch(o.expr){
+					case EField(e, name):{
+						var ind = i.getValue();
+						if (Std.is(ind, String))
+							ind = '"$ind"';
+						var n = $v{name} + '[' + ${ind} + ']';
+						return macro Khonsole._watch.watch($v{n}, ${e});
+					}
+					case EConst(e):{
+						switch (e){
+							case(CIdent(name)):{
+								var ind = i.getValue();
+								if (Std.is(ind, String))
+									ind = '"$ind"';
+								var n = $v{name} + '[' + ${ind} + ']';
+								var ret =  macro Khonsole._watch.watch($v{n}, this);
+								trace(ret.toString());
+								return ret;
+							}
+							case _:{
+								trace(e);
+								throw "Field must be supplied in watch";
+							}
+						}
+					}
+					case (_):{
+						trace(o);
 						throw "Field must be supplied in watch";
 					}
 				}
