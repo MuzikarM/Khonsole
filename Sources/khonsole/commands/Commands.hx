@@ -223,33 +223,8 @@ class Commands{
 				}
 			}
 		}, "!hide <watches|profiles>");
-		register("fields", function(params){
-			if (params.length < 1)
-				return {
-					success: false,
-					output: "Variable name must be provided"
-				};
-			var name = params[0];
-			var interp = Khonsole.interpreter.getInterp();
-			if (interp.variables.exists(name)){
-				var x = interp.variables.get(name);
-				var fields = "";
-				for (field in Reflect.fields(x)){
-					fields += '$field ';
-				}
-				return {
-					success: true,
-					output: fields
-				};
-			} else {
-				return {
-					success: false,
-					output: '$name does not exist'
-				}
-			}
-		}, "!fields <variable>");
+		commands.set("!fields", new FieldsCmd());
 	}
-
 	public function register(id:String, action:Array<String>->Status, usage:String = "NOT SPECIFIED"){
 		commands.set('!$id', new Command(id, action, usage));
 	}
@@ -259,16 +234,27 @@ class Commands{
 	}
 
 	public function getSuggestion(x:String):String{
-		var iter = commands.keys();
-		while (iter.hasNext()){
-			var key = iter.next();
-			trace(key);
-			if (key.startsWith(x)){
-				return key;
-			}
+		x.trim();
+		var cmd = x.split(" ");
+		if (cmd.length > 1)
+			x = cmd[0];
+		if (commands.exists(x)){
+			var cmd = commands.get(x);
+			Khonsole.display.info(cmd.getUsage());
+			return x;
 		}
-		return x;
-		
+		else {
+			if (x.charAt(0) != "!")
+				x = '!$x';
+			var iter = commands.keys();
+			while (iter.hasNext()){
+				var key = iter.next();
+				if (key.startsWith(x)){
+					return key;
+				}
+			}
+			return x;
+		}
 	}
 
 }

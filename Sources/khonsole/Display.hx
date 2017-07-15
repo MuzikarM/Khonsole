@@ -2,19 +2,28 @@ package khonsole;
 
 import khonsole.commands.Status;
 
-class Display{
+class Display extends Window{
 
 	var display:Array<Line>;
-	var bounds:Bounds;
+	var index:Int;
+	var maxIndex:Int;
 
 	public function new(x:Int, y:Int, w:Int, h:Int){
 		display = new Array<Line>();
-		bounds = {
-			x:x,
-			y:y,
-			w:w,
-			h:h
-		};
+		initBounds(x,y,w,h);
+		this.onResize = _resize;
+		this.onScroll = _scroll;
+		maxIndex = Std.int((bounds.h - Khonsole.fontSize) / Khonsole.fontSize);
+	}
+
+	function _scroll(i){
+		if (display.length < maxIndex)
+			return;
+		index += i;
+		if (index < 0)
+			index = 0;
+		if (index > display.length - maxIndex)
+			index = display.length - maxIndex;
 	}
 
 	public function print(text:String, color:Int){
@@ -24,7 +33,6 @@ class Display{
 			var words = text.split(" ");
 			var w:Float = fwidth('[__]: ');
 			var line = "";
-			trace(words);
 			for (word in words){
 				var tempW = fwidth('$word ');
 				if (tempW + w >= bounds.w){
@@ -42,16 +50,12 @@ class Display{
 			for (line in lines)
 				display.push({text: line, color: color});
 		}
-		//var wh = kha.System.windowHeight();
-		//var height = (wh*Khonsole.height)-Khonsole.fontSize;
-		var maxLines = Std.int(bounds.h / Khonsole.fontSize)-1;
-		if (display.length > maxLines){
-			var del = Std.int(Math.abs(maxLines - display.length));
-			display.splice(0, del);
+		if (display.length > maxIndex){
+			index = display.length - maxIndex;
 		}
 	}
 
-	public function resize(w:Int, h:Int){
+	public function _resize(w:Int, h:Int){
 		bounds.w = w;
 		bounds.y = Std.int(h - h * Khonsole.height);
 	}
@@ -70,6 +74,7 @@ class Display{
 
 	public function clear(){
 		display.splice(0, display.length);
+		index = 0;
 	}
 
 	public function displayStatus(status:Status){
@@ -87,19 +92,20 @@ class Display{
 	}
 
 	public function render(g:kha.graphics2.Graphics){
-		if (display == null)
-			return;
-		var wh = kha.System.windowHeight();
-		var top = wh-(Khonsole.height * wh);
 		var a = 0;
 		g.opacity = Khonsole.opacity;
 		g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h); 
-		for (line in display){
+		for (i in index...Std.int(Math.min(index+maxIndex, display.length))){
+			var line = display[i];
 			g.color = line.color;			
-			var lineNum = '[$a]: ';
-			g.drawString(lineNum, 0, top + (a * Khonsole.fontSize));
-			g.drawString(line.text, Khonsole.font.width(Khonsole.fontSize, lineNum), top + (a * Khonsole.fontSize));
+			var lineNum = '[$i]: ';
+			g.drawString(lineNum, 0, bounds.y + (a * Khonsole.fontSize));
+			g.drawString(line.text, Khonsole.font.width(Khonsole.fontSize, lineNum), bounds.y + (a * Khonsole.fontSize));
 			a++;
+		}
+		if (display.length > maxIndex){
+			g.color = 0xffffffff;
+			g.fillRect(bounds.w - 4, bounds.y + bounds.h * (index / display.length), 4, bounds.h * (maxIndex / display.length));
 		}
 	}
 

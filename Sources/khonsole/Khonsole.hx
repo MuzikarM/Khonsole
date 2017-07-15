@@ -10,6 +10,7 @@ import kha.input.KeyCode;
 #if macro
 import haxe.macro.Expr;
 import haxe.macro.Expr.ExprDef;
+using haxe.macro.ExprTools;
 #end
 class Khonsole{
 
@@ -22,7 +23,7 @@ class Khonsole{
 	public static var opacity:Float;
 	public static var fontSize:Int;
 	static var input:Input;
-	public static var actionKey:Int;
+	public static var actionKey:kha.input.KeyCode;
 
 	public static var history(default, null):History;
 	public static var interpreter(default, null):Interpreter;
@@ -30,7 +31,9 @@ class Khonsole{
 	public static var display(default, null):Display;
 	public static var _watch(default, null):Watch;
 	public static var profiler(default, null):Profiler;
+	static var windows:Array<Window>;
 
+	static var inputMan:InputManager;
 	static var charWidth:Float;
 
 	static var prevSize = {
@@ -57,7 +60,7 @@ class Khonsole{
 	@param height height of Khonsole (in %), 33 % by default
 	@param opacity opacity of Khonsole (in %) 50 % by default
 	**/
-	public static function init(font:Font, key:Int = KeyCode.Home, fontSize:Int = 20, height:Float = 0.33, opacity:Float = 0.5){
+	public static function init(font:Font, key:KeyCode = KeyCode.Home, fontSize:Int = 20, height:Float = 0.33, opacity:Float = 0.5){
 		showing = true;
 		Khonsole.font = font;
 		Khonsole.height = height;
@@ -74,7 +77,8 @@ class Khonsole{
 		input = new Input(0, h - fontSize - 6, w, fontSize + 4, charWidth);
 		_watch = new Watch(0, 0, Std.int(w/2), Std.int(h/2));
 		profiler = new Profiler(Std.int(w/2), 0, Std.int(w/2), Std.int(h/2));
-		
+		windows = [_watch, profiler, input, display];
+		inputMan = new InputManager(windows, input);	
 	}
 
 	/**
@@ -92,10 +96,9 @@ Hides Khonsole
 
 	private static function resize(w:Int, h:Int){
 		prevSize = {width: w, height: h};
-		input.resize(w,h);
-		display.resize(w,h);
-		_watch.resize(w, h);
-		profiler.resize(w, h);
+		for (window in windows){
+			window.resize(w, h);
+		}
 	}
 
 	public static function refresh(){
@@ -135,7 +138,6 @@ Renders Khonsole
 	#end
 
 	macro public static function watch(value:Expr){
-		trace(value);
 		switch(value.expr){
 			case EField(e, name):{
 				return macro Khonsole._watch.watch($v{name}, ${e});
@@ -147,6 +149,38 @@ Renders Khonsole
 					}
 					case _:{
 						trace(e);
+						throw "Field must be supplied in watch";
+					}
+				}
+			}
+			case EArray(o, i):{
+				switch(o.expr){
+					case EField(e, name):{
+						var ind = i.getValue();
+						if (Std.is(ind, String))
+							ind = '"$ind"';
+						var n = $v{name} + '[' + ${ind} + ']';
+						return macro Khonsole._watch.watch($v{n}, ${e});
+					}
+					case EConst(e):{
+						switch (e){
+							case(CIdent(name)):{
+								var ind = i.getValue();
+								if (Std.is(ind, String))
+									ind = '"$ind"';
+								var n = $v{name} + '[' + ${ind} + ']';
+								var ret =  macro Khonsole._watch.watch($v{n}, this);
+								trace(ret.toString());
+								return ret;
+							}
+							case _:{
+								trace(e);
+								throw "Field must be supplied in watch";
+							}
+						}
+					}
+					case (_):{
+						trace(o);
 						throw "Field must be supplied in watch";
 					}
 				}

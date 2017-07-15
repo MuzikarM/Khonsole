@@ -4,30 +4,71 @@ import kha.Scheduler;
 
 using StringTools;
 
-class Watch{
+class Watch extends Window{
 
 	public var watches(default, null):Array<WatchObj>;
-	var bounds:Bounds;
 	var taskId:Int;
-	var heading:String;
-	public var showing:Bool;
+	var rate:Float;
+	var index:Int;
+	var totalLines:Int;
+	var maxLines:Int;
 
 	public function new(x:Int, y:Int, w:Int, h:Int, rate:Float = 1){
 		watches = new Array<WatchObj>();
-		bounds = {
-			x:x,
-			y:y,
-			w:w,
-			h:h
-		};
-		heading = "";
+		heading = "WATCHES";		
+		initBounds(x,y,w,h);
 		showing = false;
+		taskId = Scheduler.addTimeTask(refresh, rate, rate);
+		this.onResize = _resize;
+		index = 0;
+		totalLines = 0;
+		maxLines = Std.int((bounds.h - Khonsole.fontSize)/Khonsole.fontSize);
+		addCloseButton();
+		this.rate = rate;
+		this.onScroll = _scroll;
+		addButton(new Button(0.95, 0, "Pause", _pause, 0xffbb0000));
+		#if (!flash && !js)
+		addButton(new Button(0.85, 0, "Save", _save, 0xff0000bb));
+		#end
+	}
+
+	public function setRefreshRate(){
+		Scheduler.removeTimeTask(taskId);
 		taskId = Scheduler.addTimeTask(refresh, rate, rate);
 	}
 
-	public function setRefreshRate(rate:Float){
-		Scheduler.removeTimeTask(taskId);
-		Scheduler.addTimeTask(refresh, rate, rate);
+	public function changeRefreshRate(rate:Float){
+		this.rate = rate;
+		setRefreshRate();
+	}
+
+	function _scroll(i){
+		if (totalLines < maxLines)
+			return;
+		index += i;
+		if (index < 0)
+			index = 0;
+		if (index > totalLines - maxLines)
+			index = totalLines - maxLines;
+	}
+
+	function _pause(id){
+		if (taskId != -1){
+			activeButton.text = "Resume";
+			activeButton.color = 0xff00bb00;
+			Scheduler.removeTimeTask(taskId);
+			taskId = -1;
+		} else {
+			activeButton.text = "Pause";
+			activeButton.color= 0xffbb0000;
+			setRefreshRate();
+		}
+		return true;
+	}
+
+	function _save(id){
+		Khonsole.interpreter.interpret("!dump watches");
+		return true;
 	}
 
 
@@ -39,12 +80,12 @@ class Watch{
 			var words = str.split(" ");
 			var w:Float = 0;
 			var lines = [];
-			var line = "";
+			var line = "  ";
 			for (word in words){
 				word += " ";
-				if (w + fw(word) > bounds.w){
+				if (w + fw(word) > bounds.w - 20){
 					lines.push(line);
-					line = "";
+					line = "  ";
 					w = fw(word);
 				} else {
 					w += fw(word);
@@ -53,83 +94,125 @@ class Watch{
 			}
 			if (line != "")
 				lines.push(line);
+			totalLines += lines.length + 1;
 			return lines;
 		}
+		totalLines++;
 		return str;
 	}
 
 	function refresh(){
+		totalLines = 0;
 		watches = watches.map(function(watch){
-			if (watch.type == FIELD)
-				return {name: watch.name, object: watch.object, value: str(Reflect.field(watch.object, watch.name)), type: FIELD};
-			else if (watch.type == PROPERTY)
-				return {name: watch.name, object: watch.object, value: str(Reflect.getProperty(watch.object, watch.name)), type: PROPERTY};
-			return {name: watch.name, object: watch.object, type: FIELD, value: "ERROR"};
+			return switch(watch.type){ 
+				case(FIELD):
+					{name: watch.name, object: watch.object, value: str(Reflect.field(watch.object, watch.name)), type: FIELD};
+				case(PROPERTY):
+					{name: watch.name, object: watch.object, value: str(Reflect.getProperty(watch.object, watch.name)), type: PROPERTY};
+				case(ARRAY(i)):
+					{name: watch.name, object: watch.object, value: str(Reflect.getProperty(watch.object, watch.name)[i]), type: ARRAY(i)};
+				case(MAP(id, h)):
+					{name: watch.name, object: watch.object, value: str(Reflect.getProperty(h, id)), type: MAP(id, h)};
+				default:
+					{name: watch.name, object: watch.object, type: FIELD, value: "ERROR"};
+			}
 		});
 	}
 
 	public function watch(name:String, value:Dynamic){
 		showing = true;
-		if (Reflect.hasField(value, name)){
+		if (name.endsWith("]")){
+			var i = name.indexOf("[");
+			var n = name.substr(0, i);
+			var ind:Any = name.substr(i);
+			ind = ind.replace("[", "").replace("]", "");
+			if (ind.endsWith('"'))
+				ind = ind.replace('"', "");
+			else 
+				ind = Std.parseInt(ind);
+			var prop = Reflect.getProperty(value, n);
+			if (prop != null){
+				if (Std.is(ind, Int)){
+					watches.push({name: n, object: value, value: str(prop[cast ind]), type: WatchType.ARRAY(cast ind)});
+				} else if (Std.is(ind, String)){
+					var h = Reflect.getProperty(prop, "h");
+					if (h != null){
+						var val = Reflect.getProperty(h, ind);
+						watches.push({name: n, object: value, value: str(val), type: MAP(ind, h)});
+					}
+					else
+						throw "Something went wrong";
+				}
+			} else throw "Watched object doesn't exist";
+		} else if (Reflect.hasField(value, name)){
 			watches.push({name: name, object: value, value: str(Reflect.field(value, name)), type: WatchType.FIELD});
 		} else {
 			var prop = Reflect.getProperty(value, name);
 			if (prop != null)
 				watches.push({name: name, object: value, value: str(prop), type: WatchType.PROPERTY});
-			else
-				throw "Watched object doesn't exist";
+			else{
+				var h = Reflect.getProperty(value, "h");
+				if (h != null){
+					watches.push({name: name, object: h, value: str(Reflect.getProperty(h, name)), type: PROPERTY});
+				} else throw "Watched object doesn't exist";
+			}
 		}
 	}
 
-	function makeHeading(g:kha.graphics2.Graphics){
-		var eq = Std.int((bounds.w - g.font.width(Khonsole.fontSize, "WATCHES") / g.font.width(Khonsole.fontSize, "=")) / 2 / g.font.width(Khonsole.fontSize, "=")) - 1;
-		heading = "WATCHES";
-		for (i in 0...eq){
-			heading = '=$heading=';
-		}
-	}
-
-	function drawMultiline(g:kha.graphics2.Graphics, val:Array<String>, i:Int){
+	function drawMultiline(g:kha.graphics2.Graphics, val:Array<String>, i:Int):Int{
 		for (line in val){
 			g.drawString(line, bounds.x, bounds.y + i * g.fontSize);
 			i++;
 		}
+		return i;
 	}
 
-	public function resize(w:Int, h:Int){
+	public function _resize(w:Int, h:Int){
 		if (Khonsole.profiler.showing){
 			bounds.w = Std.int(w / 2);
 		} else {
 			bounds.w = w;
 		}
 		bounds.h = Std.int(h / 2);
-		heading = "";
 		refresh();
 	}
 
 	public function render(g:kha.graphics2.Graphics){
 		if (!showing)
 			return;
-		g.color = 0xffcccccc;
-		g.opacity = Khonsole.opacity;
-		g.fillRect(bounds.x, bounds.y, bounds.w, bounds.h);
-		g.opacity = 1;
+		prepareWindow(g);
+		var fs = Khonsole.fontSize;		
+		g.scissor(bounds.x, bounds.y + fs, bounds.w, bounds.h - fs);
+		g.pushTranslation(0, -index*fs);
 		g.color = 0xff000000;
-		if (heading == "")
-			makeHeading(g);
-		g.drawString(heading, bounds.x, bounds.y);
+		g.opacity = Khonsole.opacity;
 		var i = 1;
 		for (watch in watches){
+			var name = '${watch.name}';
+			switch(watch.type){
+				case(ARRAY(i)):
+					name += '[$i]';
+				case(MAP(id,_)):
+					name += '["$id"]';
+				default:
+			}
 			if (Std.is(watch.value, String)){
-				g.drawString('${watch.name}: ${watch.value}', bounds.x, bounds.y + i*g.fontSize);
+				g.drawString('${name}: ${watch.value}', bounds.x, bounds.y + i*g.fontSize);
 				i++;
 			}
 			else {
-				g.drawString('${watch.name}: ', bounds.x, bounds.y + i * g.fontSize);
+				g.drawString('${name}: ', bounds.x, bounds.y + i * g.fontSize);
 				i++;
-				drawMultiline(g, cast watch.value, i);
+				i = drawMultiline(g, cast watch.value, i);
 			}
 		}
+		g.color = 0xffffffff;
+		g.pushTranslation(0, index*fs);		
+		g.disableScissor();		
+		if (totalLines > maxLines){
+			g.fillRect(bounds.w - 2, fs + bounds.h * (index / totalLines), 2, bounds.h * (maxLines / totalLines) - fs);
+		}
+		
 	}
 
 }
@@ -144,4 +227,6 @@ typedef WatchObj = {
 enum WatchType{
 	PROPERTY;
 	FIELD;
+	ARRAY(i:Int);
+	MAP(str:String, getFn:Dynamic);
 }

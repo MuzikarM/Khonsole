@@ -19,4 +19,26 @@ class Command{
 	public function getUsage():String{
 		return usage;
 	}
+
+	function success(?output:String):Status{
+		if (output == null)
+			return {
+				success: true,
+			};
+		return {
+			success: true,
+			output: output
+		}
+	}
+
+	function fail(?output:String):Status{
+		if (output == null)
+			return {
+				success: false,
+			}
+		return {
+			success: false,
+			output: output
+		}
+	}
 }
