@@ -79,7 +79,7 @@ class Interpreter{
 			}
 			catch(e:Dynamic){
 				var cmd = runCommand('!$input');
-				if (cmd.success){
+				if (cmd.success || cmd.output != null){
 					return cmd;
 				}
 				return {
