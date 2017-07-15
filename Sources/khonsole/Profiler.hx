@@ -14,6 +14,18 @@ class Profiler extends Window{
 		columnWidth = w / 4;
 		this.onResize = _resize;
 		addCloseButton();
+		#if (!js && !flash)
+		addButton(new Button(0.95, 0, "Save", _save));
+		#end
+	}
+
+	function _scroll(i:Int){
+		
+	}
+
+	function _save(_){
+		Khonsole.interpreter.interpret("!dump profiles");
+		return true;
 	}
 
 	public function _resize(w:Int, h:Int){

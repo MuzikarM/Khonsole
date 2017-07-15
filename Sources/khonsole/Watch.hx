@@ -17,11 +17,49 @@ class Watch extends Window{
 		taskId = Scheduler.addTimeTask(refresh, rate, rate);
 		this.onResize = _resize;
 		addCloseButton();
+		addButton(new Button(0.95, 0, "Pause", _pause, 0xffbb0000));
+		#if (!flash && !js)
+		addButton(new Button(0.85, 0, "Save", _save, 0xff0000bb));
+		#end
 	}
 
-	public function setRefreshRate(rate:Float){
+	public function setRefreshRate(){
 		Scheduler.removeTimeTask(taskId);
-		Scheduler.addTimeTask(refresh, rate, rate);
+		taskId = Scheduler.addTimeTask(refresh, rate, rate);
+	}
+
+	public function changeRefreshRate(rate:Float){
+		this.rate = rate;
+		setRefreshRate();
+	}
+
+	function _scroll(i){
+		if (totalLines < maxLines)
+			return;
+		index += i;
+		if (index < 0)
+			index = 0;
+		if (index > totalLines - maxLines)
+			index = totalLines - maxLines;
+	}
+
+	function _pause(id){
+		if (taskId != -1){
+			activeButton.text = "Resume";
+			activeButton.color = 0xff00bb00;
+			Scheduler.removeTimeTask(taskId);
+			taskId = -1;
+		} else {
+			activeButton.text = "Pause";
+			activeButton.color= 0xffbb0000;
+			setRefreshRate();
+		}
+		return true;
+	}
+
+	function _save(id){
+		Khonsole.interpreter.interpret("!dump watches");
+		return true;
 	}
 
 
@@ -33,12 +71,12 @@ class Watch extends Window{
 			var words = str.split(" ");
 			var w:Float = 0;
 			var lines = [];
-			var line = "";
+			var line = "  ";
 			for (word in words){
 				word += " ";
-				if (w + fw(word) > bounds.w){
+				if (w + fw(word) > bounds.w - 20){
 					lines.push(line);
-					line = "";
+					line = "  ";
 					w = fw(word);
 				} else {
 					w += fw(word);
@@ -100,16 +138,21 @@ class Watch extends Window{
 			var prop = Reflect.getProperty(value, name);
 			if (prop != null)
 				watches.push({name: name, object: value, value: str(prop), type: WatchType.PROPERTY});
-			else
-				throw "Watched object doesn't exist";
+			else{
+				var h = Reflect.getProperty(value, "h");
+				if (h != null){
+					watches.push({name: name, object: h, value: str(Reflect.getProperty(h, name)), type: PROPERTY});
+				} else throw "Watched object doesn't exist";
+			}
 		}
 	}
 
-	function drawMultiline(g:kha.graphics2.Graphics, val:Array<String>, i:Int){
+	function drawMultiline(g:kha.graphics2.Graphics, val:Array<String>, i:Int):Int{
 		for (line in val){
 			g.drawString(line, bounds.x, bounds.y + i * g.fontSize);
 			i++;
 		}
+		return i;
 	}
 
 	public function _resize(w:Int, h:Int){

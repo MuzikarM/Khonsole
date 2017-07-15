@@ -23,7 +23,7 @@ class Khonsole{
 	public static var opacity:Float;
 	public static var fontSize:Int;
 	static var input:Input;
-	public static var actionKey:Int;
+	public static var actionKey:kha.input.KeyCode;
 
 	public static var history(default, null):History;
 	public static var interpreter(default, null):Interpreter;
@@ -60,7 +60,7 @@ class Khonsole{
 	@param height height of Khonsole (in %), 33 % by default
 	@param opacity opacity of Khonsole (in %) 50 % by default
 	**/
-	public static function init(font:Font, key:Int = KeyCode.Home, fontSize:Int = 20, height:Float = 0.33, opacity:Float = 0.5){
+	public static function init(font:Font, key:KeyCode = KeyCode.Home, fontSize:Int = 20, height:Float = 0.33, opacity:Float = 0.5){
 		showing = true;
 		Khonsole.font = font;
 		Khonsole.height = height;

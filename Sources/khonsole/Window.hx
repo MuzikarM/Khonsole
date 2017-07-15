@@ -1,12 +1,14 @@
 package khonsole;
 
+import kha.input.KeyCode;
+
 class Window{
 
 	public var bounds(default, set):Bounds;
 	public var showing:Bool;
 	var focused:Bool;
 	var onScroll:Int->Void;
-	var onKeyInput:Int->Void;
+	var onKeyInput:KeyCode->Void;
 	var onStrInput:String->Void;
 	var onClick:Int->Int->Int->Void;
 	var onResize:Int->Int->Void;
@@ -75,6 +77,10 @@ class Window{
 	public function removeButton(b:Button){
 		if (buttons == null)
 			return;
+		if (b == activeButton){
+			activeButton.lostFocus();
+			activeButton = null;
+		}
 		buttons.remove(b);
 		if (buttons.length == 0)
 			buttons = null;

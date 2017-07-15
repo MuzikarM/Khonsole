@@ -46,7 +46,7 @@ class Input extends Window{
 	}
 
 
-	function down(x){
+	function down(x:KeyCode){
 		switch(x){
 			case KeyCode.Backspace:{
 				if (input.length == 0)
@@ -91,6 +91,7 @@ class Input extends Window{
 					return;
 				input = input.substr(0, pos) + input.substr(pos+1);
 			}
+			default:
 		}
 	}
 

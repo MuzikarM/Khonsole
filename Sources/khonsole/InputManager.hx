@@ -65,7 +65,7 @@ class InputManager{
 			active.scroll(y);
 	}
 
-	function keyDown(i){
+	function keyDown(i:kha.input.KeyCode){
 		if (i == Khonsole.actionKey)
 			Khonsole.showing = !Khonsole.showing;
 		if (!Khonsole.showing){
