@@ -184,8 +184,8 @@ class Watch extends Window{
 		var fs = Khonsole.fontSize;		
 		g.scissor(bounds.x, bounds.y + fs, bounds.w, bounds.h - fs);
 		g.pushTranslation(0, -index*fs);
-		g.opacity = 1;
 		g.color = 0xff000000;
+		g.opacity = Khonsole.opacity;
 		var i = 1;
 		for (watch in watches){
 			var name = '${watch.name}';
@@ -207,9 +207,11 @@ class Watch extends Window{
 			}
 		}
 		g.color = 0xffffffff;
-		g.pushTranslation(0,index*fs);		
+		g.pushTranslation(0, index*fs);		
 		g.disableScissor();		
-		g.fillRect(bounds.w - 2, fs + bounds.h * (index / totalLines), 2, bounds.h * (maxLines / totalLines) - fs);
+		if (totalLines > maxLines){
+			g.fillRect(bounds.w - 2, fs + bounds.h * (index / totalLines), 2, bounds.h * (maxLines / totalLines) - fs);
+		}
 		
 	}
 
