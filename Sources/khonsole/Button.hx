@@ -1,13 +1,14 @@
 package khonsole;
 
+
 class Button{
 
 	static inline var MARGIN:Int = 2;
 
 	var bounds:Bounds;
-	var text:String;
+	public var text(default, set):String;
 	var textWidth:Float;
-	var color:Int;
+	public var color:Int;
 	var onClick:Int->Bool;
 	var focused:Bool;
 	var parent:Window;
@@ -50,6 +51,24 @@ class Button{
 			w: bounds.w,
 			h: bounds.h
 		};
+	}
+
+	function recalculateBounds(){
+		if (parent == null)
+			return;
+		textWidth = Khonsole.font.width(Khonsole.fontSize, text);
+		bounds = {
+			x: Std.int(parent.bounds.x + parent.bounds.w * offX - textWidth),
+			y: Std.int(parent.bounds.y + parent.bounds.h * offY + MARGIN),
+			w: Std.int(textWidth + MARGIN),
+			h: Std.int(Khonsole.fontSize + MARGIN)
+		}
+	}
+
+	function set_text(value){
+		this.text = value;
+		recalculateBounds();
+		return this.text;
 	}
 
 	public function parentResized(prevB:Bounds, newB:Bounds){
