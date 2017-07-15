@@ -8,6 +8,10 @@ class Watch extends Window{
 
 	public var watches(default, null):Array<WatchObj>;
 	var taskId:Int;
+	var rate:Float;
+	var index:Int;
+	var totalLines:Int;
+	var maxLines:Int;
 
 	public function new(x:Int, y:Int, w:Int, h:Int, rate:Float = 1){
 		watches = new Array<WatchObj>();
@@ -16,7 +20,12 @@ class Watch extends Window{
 		showing = false;
 		taskId = Scheduler.addTimeTask(refresh, rate, rate);
 		this.onResize = _resize;
+		index = 0;
+		totalLines = 0;
+		maxLines = Std.int((bounds.h - Khonsole.fontSize)/Khonsole.fontSize);
 		addCloseButton();
+		this.rate = rate;
+		this.onScroll = _scroll;
 		addButton(new Button(0.95, 0, "Pause", _pause, 0xffbb0000));
 		#if (!flash && !js)
 		addButton(new Button(0.85, 0, "Save", _save, 0xff0000bb));
@@ -85,12 +94,15 @@ class Watch extends Window{
 			}
 			if (line != "")
 				lines.push(line);
+			totalLines += lines.length + 1;
 			return lines;
 		}
+		totalLines++;
 		return str;
 	}
 
 	function refresh(){
+		totalLines = 0;
 		watches = watches.map(function(watch){
 			return switch(watch.type){ 
 				case(FIELD):
@@ -169,6 +181,9 @@ class Watch extends Window{
 		if (!showing)
 			return;
 		prepareWindow(g);
+		var fs = Khonsole.fontSize;		
+		g.scissor(bounds.x, bounds.y + fs, bounds.w, bounds.h - fs);
+		g.pushTranslation(0, -index*fs);
 		g.opacity = 1;
 		g.color = 0xff000000;
 		var i = 1;
@@ -188,9 +203,14 @@ class Watch extends Window{
 			else {
 				g.drawString('${name}: ', bounds.x, bounds.y + i * g.fontSize);
 				i++;
-				drawMultiline(g, cast watch.value, i);
+				i = drawMultiline(g, cast watch.value, i);
 			}
 		}
+		g.color = 0xffffffff;
+		g.pushTranslation(0,index*fs);		
+		g.disableScissor();		
+		g.fillRect(bounds.w - 2, fs + bounds.h * (index / totalLines), 2, bounds.h * (maxLines / totalLines) - fs);
+		
 	}
 
 }
